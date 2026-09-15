@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pixel Physics Sandbox | Ehsan Games</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    body {
+      background: #0b0f19;
+      color: #ffffff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    h1 {
+      font-size: 2rem;
+      background: linear-gradient(135deg, #a855f7, #ec4899);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 12px;
+    }
+    .palette {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .element-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+    .element-btn.active {
+      border-color: #a855f7;
+      background: rgba(168, 85, 247, 0.25);
+      box-shadow: 0 0 12px rgba(168, 85, 247, 0.4);
+    }
+    canvas {
+      background: #000000;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+      cursor: crosshair;
+      touch-action: none;
+    }
+    .controls {
+      margin-top: 12px;
+      display: flex;
+      gap: 12px;
+    }
+    .action-btn {
+      background: #dc2626;
+      border: none;
+      color: white;
+      padding: 8px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .back-link {
+      margin-top: 16px;
+      color: #94a3b8;
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+    .back-link:hover {
+      color: #ffffff;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Pixel Physics Sandbox</h1>
+
+  <div class="palette">
+    <button class="element-btn active" data-element="1">⏳ Sand</button>
+    <button class="element-btn" data-element="2">💧 Water</button>
+    <button class="element-btn" data-element="3">🔥 Fire</button>
+    <button class="element-btn" data-element="4">🪵 Wood</button>
+    <button class="element-btn" data-element="5">🧪 Acid</button>
+    <button class="element-btn" data-element="0">🧹 Erase</button>
+  </div>
+
+  <canvas id="sandbox" width="200" height="200" style="width: 400px; height: 400px;"></canvas>
+
+  <div class="controls">
+    <button class="action-btn" onclick="clearGrid()">Clear Grid</button>
+  </div>
+
+  <a href="/" class="back-link">&larr; Back to Ehsan Games Hub</a>
+
+  <script>
+    const canvas = document.getElementById('sandbox');
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width;
+    const height = canvas.height;
+
+    // 0: Empty, 1: Sand, 2: Water, 3: Fire, 4: Wood, 5: Acid
+    let grid = Array(width * height).fill(0);
+    let currentElement = 1;
+    let isDrawing = false;
+
+    const colors = {
+      0: [0, 0, 0],
+      1: [234, 179, 8],   // Sand
+      2: [56, 189, 248],  // Water
+      3: [239, 68, 68],   // Fire
+      4: [120, 53, 15],   // Wood
+      5: [34, 197, 94]    // Acid
+    };
+
+    function getIndex(x, y) {
+      return y * width + x;
+    }
+
+    function updatePhysics() {
+      let nextGrid = [...grid];
+
+      for (let y = height - 1; y >= 0; y--) {
+        for (let x = 0; x < width; x++) {
+          let i = getIndex(x, y);
+          let type = grid[i];
+
+          if (type === 0 || type === 4) continue; // Skip empty & stationary wood
+
+          // Sand Logic
+          if (type === 1) {
+            if (y + 1 < height) {
+              let below = getIndex(x, y + 1);
+              let belowLeft = x > 0 ? getIndex(x - 1, y + 1) : null;
+              let belowRight = x < width - 1 ? getIndex(x + 1, y + 1) : null;
+
+              if (grid[below] === 0 || grid[below] === 2) {
+                nextGrid[i] = grid[below];
+                nextGrid[below] = 1;
+              } else if (belowLeft && (grid[belowLeft] === 0 || grid[belowLeft] === 2)) {
+                nextGrid[i] = grid[belowLeft];
+                nextGrid[belowLeft] = 1;
+              } else if (belowRight && (grid[belowRight] === 0 || grid[belowRight] === 2)) {
+                nextGrid[i] = grid[belowRight];
+                nextGrid[belowRight] = 1;
+              }
+            }
+          }
+
+          // Water Logic
+          else if (type === 2) {
+            if (y + 1 < height) {
+              let below = getIndex(x, y + 1);
+              let left = x > 0 ? getIndex(x - 1, y) : null;
+              let right = x < width - 1 ? getIndex(x + 1, y) : null;
+
+              if (grid[below] === 0) {
+                nextGrid[i] = 0;
+                nextGrid[below] = 2;
+              } else if (Math.random() < 0.5 && left && grid[left] === 0) {
+                nextGrid[i] = 0;
+                nextGrid[left] = 2;
+              } else if (right && grid[right] === 0) {
+                nextGrid[i] = 0;
+                nextGrid[right] = 2;
+              }
+            }
+          }
+
+          // Fire Logic
+          else if (type === 3) {
+            if (Math.random() < 0.15) {
+              nextGrid[i] = 0; // Fire expires
+            } else if (y > 0) {
+              let above = getIndex(x, y - 1);
+              // Burn wood nearby
+              let neighbors = [above, getIndex(x - 1, y), getIndex(x + 1, y)];
+              neighbors.forEach(n => {
+                if (n && grid[n] === 4) nextGrid[n] = 3; // Ignite wood
+              });
+            }
+          }
+
+          // Acid Logic
+          else if (type === 5) {
+            if (y + 1 < height) {
+              let below = getIndex(x, y + 1);
+              if (grid[below] > 0 && grid[below] !== 5) {
+                nextGrid[i] = 0;
+                nextGrid[below] = 0; // Dissolve
+              } else if (grid[below] === 0) {
+                nextGrid[i] = 0;
+                nextGrid[below] = 5;
+              }
+            }
+          }
+        }
+      }
+
+      grid = nextGrid;
+    }
+
+    function render() {
+      const imgData = ctx.createImageData(width, height);
+      for (let i = 0; i < grid.length; i++) {
+        let type = grid[i];
+        let rgb = colors[type];
+        let p = i * 4;
+        imgData.data[p] = rgb[0];
+        imgData.data[p + 1] = rgb[1];
+        imgData.data[p + 2] = rgb[2];
+        imgData.data[p + 3] = 255;
+      }
+      ctx.putImageData(imgData, 0, 0);
+    }
+
+    function loop() {
+      updatePhysics();
+      render();
+      requestAnimationFrame(loop);
+    }
+
+    function paint(e) {
+      const rect = canvas.getBoundingClientRect();
+      const x = Math.floor((e.clientX - rect.left) / (rect.width / width));
+      const y = Math.floor((e.clientY - rect.top) / (rect.height / height));
+
+      const brushSize = 3;
+      for (let dx = -brushSize; dx <= brushSize; dx++) {
+        for (let dy = -brushSize; dy <= brushSize; dy++) {
+          let px = x + dx;
+          let py = y + dy;
+          if (px >= 0 && px < width && py >= 0 && py < height) {
+            grid[getIndex(px, py)] = currentElement;
+          }
+        }
+      }
+    }
+
+    function clearGrid() {
+      grid.fill(0);
+    }
+
+    // Input Events
+    canvas.addEventListener('mousedown', (e) => { isDrawing = true; paint(e); });
+    canvas.addEventListener('mousemove', (e) => { if (isDrawing) paint(e); });
+    window.addEventListener('mouseup', () => isDrawing = false);
+
+    canvas.addEventListener('touchstart', (e) => { isDrawing = true; paint(e.touches[0]); e.preventDefault(); });
+    canvas.addEventListener('touchmove', (e) => { if (isDrawing) paint(e.touches[0]); e.preventDefault(); });
+    window.addEventListener('touchend', () => isDrawing = false);
+
+    // Palette selection
+    document.querySelectorAll('.element-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        document.querySelectorAll('.element-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentElement = parseInt(btn.getAttribute('data-element'));
+      });
+    });
+
+    loop();
+  </script>
+</body>
+</html>
