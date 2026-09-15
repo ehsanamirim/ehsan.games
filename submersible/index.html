@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Deep Sea Submersible | Ehsan Games</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    body {
+      background: #020617;
+      color: #ffffff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      overflow: hidden;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    h1 {
+      font-size: 2rem;
+      background: linear-gradient(135deg, #38bdf8, #818cf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    #hud {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 10px 20px;
+      border-radius: 9999px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    .hud-item span {
+      color: #38bdf8;
+    }
+    #game-container {
+      position: relative;
+      width: 100%;
+      max-width: 480px;
+      height: 520px;
+    }
+    canvas {
+      width: 100%;
+      height: 100%;
+      background: #0b132b;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+      display: block;
+    }
+    .controls-hint {
+      margin-top: 12px;
+      font-size: 0.85rem;
+      color: #64748b;
+      text-align: center;
+    }
+    .touch-controls {
+      display: flex;
+      gap: 20px;
+      margin-top: 10px;
+    }
+    .touch-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: white;
+      padding: 12px 30px;
+      border-radius: 12px;
+      font-size: 1.2rem;
+      user-select: none;
+      cursor: pointer;
+    }
+    .touch-btn:active {
+      background: rgba(56, 189, 248, 0.4);
+    }
+    .back-link {
+      margin-top: 16px;
+      color: #94a3b8;
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+    .back-link:hover {
+      color: #ffffff;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>Deep Sea Submersible</h1>
+  </div>
+
+  <div id="hud">
+    <div class="hud-item">Depth: <span id="depth-val">0</span>m</div>
+    <div class="hud-item">Hull: <span id="hull-val">100</span>%</div>
+    <div class="hud-item">Oxygen: <span id="oxygen-val">100</span>%</div>
+  </div>
+
+  <div id="game-container">
+    <canvas id="gameCanvas" width="480" height="520"></canvas>
+  </div>
+
+  <div class="controls-hint">Use ⬅️ ➡️ or A / D keys to steer. Collect batteries ⚡ & oxygen 🫧 while dodging rocks 🪨.</div>
+
+  <div class="touch-controls">
+    <div class="touch-btn" id="btn-left">⬅️</div>
+    <div class="touch-btn" id="btn-right">➡️</div>
+  </div>
+
+  <a href="/" class="back-link">&larr; Back to Ehsan Games Hub</a>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let depth = 0;
+    let hull = 100;
+    let oxygen = 100;
+    let gameOver = false;
+
+    const sub = {
+      x: 220,
+      y: 80,
+      width: 40,
+      height: 24,
+      speed: 5,
+      dx: 0
+    };
+
+    let obstacles = [];
+    let powerups = [];
+
+    function spawnEntity() {
+      if (gameOver) return;
+      
+      const x = Math.random() * (canvas.width - 30);
+      const isPowerup = Math.random() < 0.4;
+
+      if (isPowerup) {
+        const type = Math.random() < 0.5 ? 'oxygen' : 'repair';
+        powerups.push({ x, y: canvas.height, radius: 12, type });
+      } else {
+        obstacles.push({ x, y: canvas.height, width: 30 + Math.random() * 20, height: 20 });
+      }
+    }
+
+    setInterval(spawnEntity, 1200);
+
+    function update() {
+      if (gameOver) return;
+
+      // Sub movement
+      sub.x += sub.dx;
+      if (sub.x < 10) sub.x = 10;
+      if (sub.x + sub.width > canvas.width - 10) sub.x = canvas.width - 10 - sub.width;
+
+      // Stats progression
+      depth += 1;
+      oxygen -= 0.05;
+
+      if (oxygen <= 0) {
+        oxygen = 0;
+        gameOver = true;
+      }
+
+      // Move obstacles up
+      obstacles.forEach((obs, index) => {
+        obs.y -= 3;
+        // Collision check
+        if (
+          sub.x < obs.x + obs.width &&
+          sub.x + sub.width > obs.x &&
+          sub.y < obs.y + obs.height &&
+          sub.y + sub.height > obs.y
+        ) {
+          hull -= 15;
+          obstacles.splice(index, 1);
+          if (hull <= 0) {
+            hull = 0;
+            gameOver = true;
+          }
+        }
+      });
+
+      // Move powerups up
+      powerups.forEach((p, index) => {
+        p.y -= 3;
+        // Collision check
+        if (
+          sub.x < p.x + p.radius &&
+          sub.x + sub.width > p.x - p.radius &&
+          sub.y < p.y + p.radius &&
+          sub.y + sub.height > p.y - p.radius
+        ) {
+          if (p.type === 'oxygen') oxygen = Math.min(100, oxygen + 25);
+          if (p.type === 'repair') hull = Math.min(100, hull + 20);
+          powerups.splice(index, 1);
+        }
+      });
+
+      // Cleanup off-screen
+      obstacles = obstacles.filter(o => o.y > -50);
+      powerups = powerups.filter(p => p.y > -50);
+
+      // HUD updates
+      document.getElementById('depth-val').innerText = depth;
+      document.getElementById('hull-val').innerText = Math.round(hull);
+      document.getElementById('oxygen-val').innerText = Math.round(oxygen);
+    }
+
+    function draw() {
+      // Dynamic depth background
+      const depthRatio = Math.min(depth / 3000, 1);
+      ctx.fillStyle = `rgb(${Math.floor(11 * (1 - depthRatio))}, ${Math.floor(19 * (1 - depthRatio))}, ${Math.floor(43 * (1 - depthRatio))})`;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Draw Submarine
+      ctx.fillStyle = '#f59e0b';
+      ctx.beginPath();
+      ctx.roundRect(sub.x, sub.y, sub.width, sub.height, 10);
+      ctx.fill();
+
+      // Periscope
+      ctx.fillStyle = '#d97706';
+      ctx.fillRect(sub.x + 15, sub.y - 6, 6, 6);
+
+      // Porthole
+      ctx.fillStyle = '#38bdf8';
+      ctx.beginPath();
+      ctx.arc(sub.x + 28, sub.y + 12, 5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Draw Obstacles
+      ctx.fillStyle = '#64748b';
+      obstacles.forEach(obs => {
+        ctx.beginPath();
+        ctx.roundRect(obs.x, obs.y, obs.width, obs.height, 6);
+        ctx.fill();
+      });
+
+      // Draw Powerups
+      powerups.forEach(p => {
+        ctx.fillStyle = p.type === 'oxygen' ? '#38bdf8' : '#10b981';
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '10px sans-serif';
+        ctx.fillText(p.type === 'oxygen' ? 'O2' : '🛠️', p.x - 6, p.y + 3);
+      });
+
+      // Game Over Screen
+      if (gameOver) {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = '#ef4444';
+        ctx.font = 'bold 24px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('SUBMERSIBLE CRUSHED', canvas.width / 2, canvas.height / 2 - 20);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '16px sans-serif';
+        ctx.fillText(`Final Depth: ${depth}m`, canvas.width / 2, canvas.height / 2 + 15);
+        ctx.fillText('Press SPACE or Tap to Restart', canvas.width / 2, canvas.height / 2 + 50);
+      }
+    }
+
+    function gameLoop() {
+      update();
+      draw();
+      requestAnimationFrame(gameLoop);
+    }
+
+    function restartGame() {
+      depth = 0;
+      hull = 100;
+      oxygen = 100;
+      obstacles = [];
+      powerups = [];
+      sub.x = 220;
+      gameOver = false;
+    }
+
+    // Input Handlers
+    window.addEventListener('keydown', e => {
+      if (e.key === 'ArrowLeft' || e.key === 'a') sub.dx = -sub.speed;
+      if (e.key === 'ArrowRight' || e.key === 'd') sub.dx = sub.speed;
+      if (e.key === ' ' && gameOver) restartGame();
+    });
+
+    window.addEventListener('keyup', e => {
+      if (['ArrowLeft', 'a', 'ArrowRight', 'd'].includes(e.key)) sub.dx = 0;
+    });
+
+    // Touch controls
+    const btnLeft = document.getElementById('btn-left');
+    const btnRight = document.getElementById('btn-right');
+
+    btnLeft.addEventListener('touchstart', (e) => { e.preventDefault(); sub.dx = -sub.speed; });
+    btnLeft.addEventListener('touchend', () => sub.dx = 0);
+    btnRight.addEventListener('touchstart', (e) => { e.preventDefault(); sub.dx = sub.speed; });
+    btnRight.addEventListener('touchend', () => sub.dx = 0);
+
+    canvas.addEventListener('click', () => { if (gameOver) restartGame(); });
+
+    gameLoop();
+  </script>
+</body>
+</html>
