@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Scale of Game Budgets | Ehsan Games</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      background-color: #0b0f19;
+      color: #ffffff;
+      overflow-x: hidden;
+    }
+
+    /* Fixed Top Tracker */
+    #tracker-hud {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      padding: 12px 24px;
+      border-radius: 9999px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      font-weight: 700;
+      font-size: 1.1rem;
+      z-index: 1000;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+
+    #budget-val {
+      color: #38bdf8;
+      font-size: 1.2rem;
+    }
+
+    /* Hero */
+    .hero {
+      height: 70vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 0 20px;
+    }
+
+    h1 {
+      font-size: 3.5rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #38bdf8, #818cf8, #c084fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 16px;
+    }
+
+    p.subtitle {
+      color: #94a3b8;
+      font-size: 1.2rem;
+      max-width: 600px;
+      line-height: 1.6;
+    }
+
+    /* Timeline Scroll Container */
+    .timeline {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 350px;
+      padding-bottom: 200px;
+    }
+
+    /* Game Card */
+    .game-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      padding: 32px;
+      border-radius: 24px;
+      width: 90%;
+      max-width: 650px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+      transition: transform 0.3s ease, border-color 0.3s ease;
+    }
+
+    .game-card:hover {
+      border-color: rgba(56, 189, 248, 0.4);
+      transform: translateY(-4px);
+    }
+
+    .era-tag {
+      display: inline-block;
+      background: rgba(56, 189, 248, 0.1);
+      color: #38bdf8;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .game-title {
+      font-size: 2rem;
+      margin-bottom: 8px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 20px 0;
+      background: rgba(0, 0, 0, 0.2);
+      padding: 16px;
+      border-radius: 12px;
+    }
+
+    .stat-box {
+      text-align: left;
+    }
+
+    .stat-label {
+      font-size: 0.8rem;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .stat-number {
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: #f8fafc;
+    }
+
+    .culture-note {
+      color: #94a3b8;
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    /* Visual Budget Bar */
+    .budget-bar-bg {
+      height: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+      margin-top: 20px;
+      overflow: hidden;
+    }
+
+    .budget-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #38bdf8, #a855f7);
+      width: 0%;
+      transition: width 0.5s ease;
+    }
+
+    .nav-footer {
+      text-align: center;
+      padding: 60px 20px;
+    }
+
+    .back-btn {
+      color: #94a3b8;
+      text-decoration: none;
+      font-weight: 600;
+      transition: color 0.2s;
+    }
+
+    .back-btn:hover {
+      color: #ffffff;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Floating Scale HUD -->
+  <div id="tracker-hud">
+    <span>Scale:</span>
+    <span id="budget-val">$100,000</span>
+  </div>
+
+  <!-- Hero Intro -->
+  <div class="hero">
+    <h1>The Scale of Game Budgets</h1>
+    <p class="subtitle">From arcade phenomena built by tiny teams to billion-dollar cultural juggernauts. Scroll down to scale the costs of iconic blockbusters.</p>
+  </div>
+
+  <!-- Timeline Cards -->
+  <div class="timeline">
+
+    <!-- Pac-Man -->
+    <div class="game-card" data-budget="100000">
+      <span class="era-tag">1980 • Golden Age Arcade</span>
+      <h2 class="game-title">Pac-Man</h2>
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="stat-label">Estimated Budget</div>
+          <div class="stat-number">~$100,000</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Cultural Impact</div>
+          <div class="stat-number">$14B+ Revenue</div>
+        </div>
+      </div>
+      <p class="culture-note">Built by Toru Iwatani and a 9-person team at Namco over 17 months. It became an unprecedented pop-culture phenomenon, generating over 7 billion quarters globally by the late 1990s.</p>
+      <div class="budget-bar-bg"><div class="budget-bar-fill" style="width: 1%;"></div></div>
+    </div>
+
+    <!-- Super Mario Bros. -->
+    <div class="game-card" data-budget="500000">
+      <span class="era-tag">1985 • 8-Bit NES Era</span>
+      <h2 class="game-title">Super Mario Bros.</h2>
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="stat-label">Estimated Budget</div>
+          <div class="stat-number">~$500,000</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Units Sold</div>
+          <div class="stat-number">58 Million+</div>
+        </div>
+      </div>
+      <p class="culture-note">Designed by Shigeru Miyamoto and Takashi Tezuka with a tiny core team. It single-handedly revived the collapsed North American video game industry and established Mario as a global household name.</p>
+      <div class="budget-bar-bg"><div class="budget-bar-fill" style="width: 3%;"></div></div>
+    </div>
+
+    <!-- Final Fantasy VII -->
+    <div class="game-card" data-budget="45000000">
+      <span class="era-tag">1997 • 3D Cinematic Shift</span>
+      <h2 class="game-title">Final Fantasy VII</h2>
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="stat-label">Dev + Marketing</div>
+          <div class="stat-number">~$45,000,000</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">US Marketing Alone</div>
+          <div class="stat-number">$20M+</div>
+        </div>
+      </div>
+      <p class="culture-note">A turning point where marketing budgets began rivaling development costs. Square backed its massive 3D cinematic CGI cutscenes with unprecedented TV advertisements worldwide, breaking JRPGs into the western mainstream.</p>
+      <div class="budget-bar-bg"><div class="budget-bar-fill" style="width: 8%;"></div></div>
+    </div>
+
+    <!-- World of Warcraft -->
+    <div class="game-card" data-budget="200000000">
+      <span class="era-tag">2004 • MMORPG Dominance</span>
+      <h2 class="game-title">World of Warcraft</h2>
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="stat-label">Launch + 4-Yr Maint.</div>
+          <div class="stat-number">~$200,000,000</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Peak Subscribers</div>
+          <div class="stat-number">12 Million</div>
+        </div>
+      </div>
+      <p class="culture-note">Initial dev cost was around $63M, but maintaining global live servers ballooned running costs past $200M by 2008. It penetrated global pop culture like no MMO before or since, getting featured in *South Park* and mainstream ads.</p>
+      <div class="budget-bar-bg"><div class="budget-bar-fill" style="width: 25%;"></div></div>
+    </div>
+
+    <!-- Cyberpunk 2077 -->
+    <div class="game-card" data-budget="440000000">
+      <span class="era-tag">2020 • Hype & Recovery</span>
+      <h2 class="game-title">Cyberpunk 2077</h2>
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="stat-label">Total Cost + Phantom Liberty</div>
+          <div class="stat-number">~$440,000,000</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Marketing Share</div>
+          <div class="stat-number">~$140,000,000</div>
+        </div>
+      </div>
+      <p class="culture-note">Driven by massive promotional campaigns, Keanu Reeves star power, and custom world-building, the initial release and subsequent overhaul (*Phantom Liberty*) positioned it as one of the most expensive media undertakings in modern entertainment.</p>
+      <div class="budget-bar-bg"><div class="budget-bar-fill" style="width: 55%;"></div></div>
+    </div>
+
+    <!-- Grand Theft Auto VI -->
+    <div class="game-card" data-budget="1000000000">
+      <span class="era-tag">Upcoming • The Apex Juggernaut</span>
+      <h2 class="game-title">Grand Theft Auto VI</h2>
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="stat-label">Estimated Total Budget</div>
+          <div class="stat-number">$1,000,000,000+</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Trailer 1 Views</div>
+          <div class="stat-number">200M+ Views</div>
+        </div>
+      </div>
+      <p class="culture-note">Widely projected to be the most expensive gaming project in human history. With over a decade of R&D, proprietary engine updates, and global marketing expectations, GTA VI represents the absolute peak of modern entertainment investment.</p>
+      <div class="budget-bar-bg"><div class="budget-bar-fill" style="width: 100%;"></div></div>
+    </div>
+
+  </div>
+
+  <div class="nav-footer">
+    <a href="/" class="back-btn">&larr; Back to Ehsan Games Hub</a>
+  </div>
+
+  <script>
+    const tracker = document.getElementById('budget-val');
+    const cards = document.querySelectorAll('.game-card');
+
+    window.addEventListener('scroll', () => {
+      let currentBudget = 100000;
+
+      cards.forEach(card => {
+        const rect = card.getBoundingClientRect();
+        if (rect.top < window.innerHeight * 0.6) {
+          currentBudget = parseInt(card.getAttribute('data-budget'));
+        }
+      });
+
+      tracker.innerText = '$' + currentBudget.toLocaleString();
+    });
+  </script>
+</body>
+</html>
